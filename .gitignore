@@ -10,7 +10,7 @@ aot-gan_pose_results/
 aot-gan_recon_results/
 data/
 ewha_masked/
-experimetns/
+experiments/
 imagenet_pretrained_ckpt/
 MAE-pose_metrics/
 MAE-pose_results/
