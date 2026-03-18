@@ -1,7 +1,7 @@
 # AOT-GAN modified for SLP dataset
 ## Train
 Train script and hyper-parameters:
-`
+```
 python train.py \
     --save_dir /mnt/d/hyebin/aot-gan-for-inpainting/experiments/slp \
     --dir_image /mnt/d/hyebin/aot-gan-for-inpainting/data/slp_256 \
@@ -15,15 +15,14 @@ python train.py \
     --iterations 500000 \
     --resume \
     --tensorboard
-`
+```
 
 <!-- ------------------------------------------------ -->
 ## Acknowledgement
-This repository is modified from: 
-![aotgan](https://github.com/researchmm/AOT-GAN-for-Inpainting/blob/master/docs/aotgan.PNG?raw=true)
-### [Arxiv Paper](https://arxiv.org/abs/2104.01431) |
-AOT-GAN: Aggregated Contextual Transformations for High-Resolution Image Inpainting<br>
+This repository is modified from:  
+AOT-GAN: Aggregated Contextual Transformations for High-Resolution Image Inpainting ([Arxiv Paper](https://arxiv.org/abs/2104.01431))<br>
 [Yanhong Zeng](https://sites.google.com/view/1900zyh),  [Jianlong Fu](https://jianlong-fu.github.io/), [Hongyang Chao](https://scholar.google.com/citations?user=qnbpG6gAAAAJ&hl),  and [Baining Guo](https://www.microsoft.com/en-us/research/people/bainguo/).<br>
+
 
 ```
 @inproceedings{yan2021agg,
