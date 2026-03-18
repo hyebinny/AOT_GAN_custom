@@ -4,3 +4,15 @@ __pycache__
 *.png
 events.*
 outputs
+
+aot-gan_pose_metrics/
+aot-gan_pose_results/
+aot-gan_recon_results/
+data/
+ewha_masked/
+experimetns/
+imagenet_pretrained_ckpt/
+MAE-pose_metrics/
+MAE-pose_results/
+MAE-recon_results/
+MI-GAN_results/

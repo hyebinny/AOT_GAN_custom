@@ -21,21 +21,35 @@ class InpaintingData(Dataset):
         self.mask_path = glob(os.path.join(args.dir_mask, args.mask_type, "*.png"))
 
         # augmentation
+        # self.img_trans = transforms.Compose(
+        #     [
+        #         transforms.RandomResizedCrop(args.image_size),
+        #         transforms.RandomHorizontalFlip(),
+        #         transforms.ColorJitter(0.05, 0.05, 0.05, 0.05),
+        #         transforms.ToTensor(),
+        #     ]
+        # )
+        # self.mask_trans = transforms.Compose(
+        #     [
+        #         transforms.Resize(args.image_size, interpolation=transforms.InterpolationMode.NEAREST),
+        #         transforms.RandomHorizontalFlip(),
+        #         transforms.RandomRotation((0, 45), interpolation=transforms.InterpolationMode.NEAREST),
+        #     ]
+        # )
         self.img_trans = transforms.Compose(
             [
-                transforms.RandomResizedCrop(args.image_size),
-                transforms.RandomHorizontalFlip(),
-                transforms.ColorJitter(0.05, 0.05, 0.05, 0.05),
+                transforms.Resize((args.image_size, args.image_size)),
                 transforms.ToTensor(),
             ]
         )
+
         self.mask_trans = transforms.Compose(
             [
-                transforms.Resize(args.image_size, interpolation=transforms.InterpolationMode.NEAREST),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation((0, 45), interpolation=transforms.InterpolationMode.NEAREST),
+                transforms.Resize((args.image_size, args.image_size),
+                                interpolation=transforms.InterpolationMode.NEAREST),
             ]
         )
+
 
     def __len__(self):
         return len(self.image_path)
@@ -49,12 +63,44 @@ class InpaintingData(Dataset):
             index = np.random.randint(0, len(self.mask_path))
             mask = Image.open(self.mask_path[index])
             mask = mask.convert("L")
+        elif self.mask_type == "random_rec":
+            # empty mask
+            mask = np.zeros((self.h, self.w), dtype=np.uint8)
+
+            # ----- ROI definition -----
+            roi_w, roi_h = 110, 210
+            roi_x1 = (self.w - roi_w) // 2
+            roi_y1 = (self.h - roi_h) // 2
+            roi_x2 = roi_x1 + roi_w
+            roi_y2 = roi_y1 + roi_h
+
+            # ----- random rectangle size (>=20) -----
+            min_w, min_h = 20, 20
+            max_w = roi_w
+            max_h = roi_h
+
+            rec_w = np.random.randint(min_w, max_w + 1)
+            rec_h = np.random.randint(min_h, max_h + 1)
+
+            # ----- random position inside ROI -----
+            rx1 = np.random.randint(roi_x1, roi_x2 - rec_w + 1)
+            ry1 = np.random.randint(roi_y1, roi_y2 - rec_h + 1)
+            rx2 = rx1 + rec_w
+            ry2 = ry1 + rec_h
+
+            # ----- apply mask -----
+            mask[ry1:ry2, rx1:rx2] = 255
+            mask = Image.fromarray(mask).convert("L")            
         else:
             mask = np.zeros((self.h, self.w)).astype(np.uint8)
             mask[self.h // 4 : self.h // 4 * 3, self.w // 4 : self.w // 4 * 3] = 1
             mask = Image.fromarray(mask).convert("L")
 
         # augment
+        if np.random.rand() < 0.5:
+            image = F.hflip(image)
+            mask = F.hflip(mask)
+
         image = self.img_trans(image) * 2.0 - 1.0
         mask = F.to_tensor(self.mask_trans(mask))
 

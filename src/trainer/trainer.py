@@ -12,6 +12,8 @@ from tqdm import tqdm
 
 from .common import timer
 
+from datetime import datetime
+
 
 class Trainer:
     def __init__(self, args):
@@ -41,6 +43,11 @@ class Trainer:
 
         if args.tensorboard:
             self.writer = SummaryWriter(os.path.join(args.save_dir, "log"))
+            self.log_txt_path = os.path.join(args.save_dir, "log", "train_log.txt")
+        else:
+            self.log_txt_path = os.path.join(args.save_dir, "train_log.txt")
+        
+        os.makedirs(os.path.dirname(self.log_txt_path), exist_ok=True)
 
     def load(self):
         try:
@@ -70,21 +77,37 @@ class Trainer:
         except Exception:
             pass
 
-    def save(
-        self,
-    ):
-        if self.args.global_rank == 0:
-            print(f"\nsaving {self.iteration} model to {self.args.save_dir} ...")
-            torch.save(
-                self.netG.module.state_dict(), os.path.join(self.args.save_dir, f"G{str(self.iteration).zfill(7)}.pt")
-            )
-            torch.save(
-                self.netD.module.state_dict(), os.path.join(self.args.save_dir, f"D{str(self.iteration).zfill(7)}.pt")
-            )
-            torch.save(
-                {"optimG": self.optimG.state_dict(), "optimD": self.optimD.state_dict()},
-                os.path.join(self.args.save_dir, f"O{str(self.iteration).zfill(7)}.pt"),
-            )
+    # def save(
+    #     self,
+    # ):
+    #     if self.args.global_rank == 0:
+    #         print(f"\nsaving {self.iteration} model to {self.args.save_dir} ...")
+    #         torch.save(
+    #             self.netG.module.state_dict(), os.path.join(self.args.save_dir, f"G{str(self.iteration).zfill(7)}.pt")
+    #         )
+    #         torch.save(
+    #             self.netD.module.state_dict(), os.path.join(self.args.save_dir, f"D{str(self.iteration).zfill(7)}.pt")
+    #         )
+    #         torch.save(
+    #             {"optimG": self.optimG.state_dict(), "optimD": self.optimD.state_dict()},
+    #             os.path.join(self.args.save_dir, f"O{str(self.iteration).zfill(7)}.pt"),
+    #         )
+
+    def save(self):
+        if self.args.global_rank != 0:
+            return
+
+        print(f"\nsaving {self.iteration} model to {self.args.save_dir} ...")
+
+        netG = self.netG.module if hasattr(self.netG, "module") else self.netG
+        netD = self.netD.module if hasattr(self.netD, "module") else self.netD
+
+        torch.save(netG.state_dict(), os.path.join(self.args.save_dir, f"G{str(self.iteration).zfill(7)}.pt"))
+        torch.save(netD.state_dict(), os.path.join(self.args.save_dir, f"D{str(self.iteration).zfill(7)}.pt"))
+        torch.save(
+            {"optimG": self.optimG.state_dict(), "optimD": self.optimD.state_dict()},
+            os.path.join(self.args.save_dir, f"O{str(self.iteration).zfill(7)}.pt"),
+        )
 
     def train(self):
         pbar = range(self.iteration, self.args.iterations)
@@ -138,6 +161,16 @@ class Trainer:
                     if self.args.tensorboard:
                         self.writer.add_scalar(key, val.item(), self.iteration)
                 pbar.set_description((description))
+
+                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.last_log_line = f"[{now}] iter={self.iteration}, {description}"
+
+                try:
+                    with open(self.log_txt_path, "a", encoding="utf-8") as f:
+                        f.write(self.last_log_line + "\n")
+                except Exception as e:
+                    print(f"[WARN] Failed to write log file: {self.log_txt_path} | {e}")
+
                 if self.args.tensorboard:
                     self.writer.add_image("mask", make_grid(masks), self.iteration)
                     self.writer.add_image("orig", make_grid((images + 1.0) / 2.0), self.iteration)

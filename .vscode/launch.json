@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug AOT-GAN Train (SLP)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/mnt/d/hyebin/aot-gan-for-inpainting/src/train.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--save_dir", "/mnt/d/hyebin/aot-gan-for-inpainting/experiments/slp",
+                "--data_train", "slp_train",
+                "--mask_type", "random_rec",
+                "--image_size", "256",
+                "--dir_image", "/mnt/d/hyebin/aot-gan-for-inpainting/data/slp_256",
+                "--save_every", "10",
+                "--resume"
+            ],
+            "env": {
+                "PYTHONUNBUFFERED": "1"
+            }
+        }
+    ]
+}
