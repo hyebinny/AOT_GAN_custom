@@ -16,3 +16,6 @@ MAE-pose_metrics/
 MAE-pose_results/
 MAE-recon_results/
 MI-GAN_results/
+vitpose_base.py
+vitpose_estim.py
+vitpose_loop.py
