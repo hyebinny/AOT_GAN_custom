@@ -19,3 +19,4 @@ MI-GAN_results/
 vitpose_base.py
 vitpose_estim.py
 vitpose_loop.py
+aot-gan_integrate_pose_files.py
